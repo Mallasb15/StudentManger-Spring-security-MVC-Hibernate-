@@ -18,6 +18,8 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
@@ -26,8 +28,8 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 @EnableWebMvc
 @EnableTransactionManagement
 @ComponentScan("com.sigma.smw")
-@PropertySource({ "persistence-mysql.properties", "security-persistence-mysql.properties" })
-public class DemoAppConfig{
+@PropertySource({"classpath:persistence-mysql.properties", "classpath:security-persistence-mysql.properties"})
+public class DemoAppConfig implements WebMvcConfigurer{
 
 	// setup variable to hold up the properties
 	@Autowired
@@ -114,56 +116,57 @@ public class DemoAppConfig{
 	}
 
 	// set up hibernate properites
-	
-		private Properties getHibernateProperties() {
-		
-			Properties props = new Properties();
-			
-			props.setProperty("hibernate.dialect",env.getProperty("hibernate.dialect"));
-			props.setProperty("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
-			
-			return props;
-		}
-		
-	// Bean property for sessionFactory
-		
-		@Bean
-		public LocalSessionFactoryBean sessionFactory() {
-			
-			LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
-			
-			// set the properties
-			sessionFactory.setDataSource(myDataSource());
-			sessionFactory.setPackagesToScan(env.getProperty("hibernate.packagesToScan"));
-			sessionFactory.setHibernateProperties(getHibernateProperties());
-			
-			return sessionFactory;
-			
-		}
-		
-		@Bean
-		@Autowired
-		public HibernateTransactionManager transactionManager(SessionFactory sessionFactory) {
-			
-			// setup transaction manager based on session factory
-			HibernateTransactionManager txManager = new HibernateTransactionManager();
-			txManager.setSessionFactory(sessionFactory);
 
-			return txManager;
-		}	
-		
-		
-//	    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-//	        registry
-//	          .addResourceHandler("/resources/**")
-//	          .addResourceLocations("/resources/"); 
-//	    }	
+	private Properties getHibernateProperties() {
+
+		Properties props = new Properties();
+
+		props.setProperty("hibernate.dialect", env.getProperty("hibernate.dialect"));
+		props.setProperty("hibernate.show_sql", env.getProperty("hibernate.show_sql"));
+
+		return props;
+	}
+
+	// Bean property for sessionFactory
+
+	@Bean
+	public LocalSessionFactoryBean sessionFactory() {
+
+		LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
+
+		// set the properties
+		sessionFactory.setDataSource(myDataSource());
+		sessionFactory.setPackagesToScan(env.getProperty("hibernate.packagesToScan"));
+		sessionFactory.setHibernateProperties(getHibernateProperties());
+
+		return sessionFactory;
+
+	}
+
+	@Bean
+	@Autowired
+	public HibernateTransactionManager transactionManager(SessionFactory sessionFactory) {
+
+		// setup transaction manager based on session factory
+		HibernateTransactionManager txManager = new HibernateTransactionManager();
+		txManager.setSessionFactory(sessionFactory);
+
+		return txManager;
+	}
 	
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		registry
+			.addResourceHandler("/resources/**")
+			.addResourceLocations("/resources/");
+	}
+
+
 	private int getIntProperty(String propName) {
 
 		String propVal = env.getProperty(propName);
 
-		// now convert to integer 
+		// now convert to integer
 		int intPropVal = Integer.parseInt(propVal);
 
 		return intPropVal;
